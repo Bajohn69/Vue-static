@@ -10,7 +10,8 @@
 <body>
     <header></header>
     <div id="app">
-        {{ msg }}
+        <input type="text" v-model="msg">
+        <h3>{{ msg }}</h3>
     </div>
     <footer></footer>
     <script>
@@ -19,7 +20,7 @@
             data(){
                 return{
                     // key: 'value'
-                    msg:'Hello Vue!'
+                    msg:''
                 }
             }
         })
