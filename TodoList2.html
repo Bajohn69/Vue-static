@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <style>
+            .completed{
+                color: #949494;
+                text-decoration: line-through;
+            }
+        </style>
+</head>
+
+<body>
+    <div id="app" class="container">
+        <div class="row">
+            <div class="col-3"></div>
+            <div class="col-6">
+                <h3>Todos</h3>
+                <input type="text" v-model="newTodo" @keyup.enter="addTodo" class="form-control" autofocus autocomplete="off" placeholder="想要做甚麼?">
+                <ul class="list-group mt-3">
+                    <li v-for="(todo, i) in todos" class="list-group-item" :key="i">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <input v-model="todo.completed" class="form-check-input me-3" type="checkbox">
+                                <label :class="{completed: todo.completed}" class="form-check-label">{{i}} - {{ todo.title }}</label>
+                                <!-- class 一定要放 key: value 放多個一定要大括號， true/false 開關 class {class1: true, class2:false} -->
+                            </div>
+                            <button @click="removeTodo(i)" class="badge bg-danger rounded-pill border-0">X</button>
+                        </div>
+                        <input type="text" class="form-control" hidden>
+                    </li>  
+                </ul>
+                <div class="mt-3 d-flex justify-content-between">
+                    <strong class=" me-3">尚有 {{ remaining }}  個工作未完成</strong>
+                    <button class="btn btn-warning me-3">清除完成工作</button>
+                </div>
+            </div>
+            <div class="col-3"></div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+        const app = createApp({
+            //options api
+            data(){
+                return{
+                    todos:JSON.parse(localStorage.getItem('todos') || '[]'), // 若讀不到就放一個空陣列
+                    // [
+                    //     {"id": 1, "title": "作業1", "completed": false },
+                    //     {"id": 2, "title": "作業2", "completed": true },
+                    //     {"id": 3, "title": "作業3", "completed": false },
+                    // ],
+                    newTodo:''
+                }
+            },
+            methods:{
+                addTodo(){
+                    //console.log(this.newTodo)
+                    //true && 程式會執行 => true
+                    //false && 程式沒有執行的需要 => false
+                    //false && false => false
+                    const value = this.newTodo && this.newTodo.trim()
+                    if(!value){
+                        return
+                    }
+                    this.todos.push({"id":this.todos.length+1,"title":value,"completed":false})
+                    this.newTodo=''
+
+                    
+                },
+                removeTodo(index){
+                  //  console.log(index)
+                   // console.log(item)
+                   //取出要刪除todo在陣列中位置的索引值
+                  //const i = this.todos.indexOf(item) //1 找不到回傳-1
+                  //刪除splice(從甚麼位置,刪除幾筆資料)
+                this.todos.splice(index,1)
+                }
+            },
+            watch:{
+                // 監控 newTodo 的資料有沒有異動
+                // 有舊執行 handler 這個 function
+                // newTodo:{
+                //     handler(newTodo){
+                //         localStorage.setItem('todo', newTodo)
+                //     },
+                    todos:{
+                        handler(todos){
+                            localStorage.setItem('todos', JSON.stringify(todos))
+                        },
+                        deep:true
+                        // 設定 true 就能監看物件中的屬性是否改變 才能 watch 到深層資料(不會只看到陣列，還會看到陣列裡面的物件)
+                        // 只有陣列物件要加 deep
+                    }
+
+                },
+                    computed:{
+                    remaining(){
+                        let notFinished = this.todos.filter(todo=>!todo.completed)
+                        // console.log(this.remaining);
+                        return notFinished.length
+                    }
+                }
+            }
+
+        )
+        app.mount('#app')
+    </script>
+</body>
+
+</html>
