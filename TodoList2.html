@@ -26,20 +26,20 @@
                 <input type="text" v-model="newTodo" @keyup.enter="addTodo" class="form-control" autofocus autocomplete="off" placeholder="想要做甚麼?">
                 <ul class="list-group mt-3">
                     <li v-for="(todo, i) in todos" class="list-group-item" :key="i">
-                        <div class="d-flex justify-content-between">
+                        <div v-if="editedTodo !== todo" class="d-flex justify-content-between">
                             <div>
                                 <input v-model="todo.completed" class="form-check-input me-3" type="checkbox">
-                                <label :class="{completed: todo.completed}" class="form-check-label">{{i}} - {{ todo.title }}</label>
+                                <label @dblclick="editTodo(todo)" :class="{completed: todo.completed}" class="form-check-label">{{i}} - {{ todo.title }}</label>
                                 <!-- class 一定要放 key: value 放多個一定要大括號， true/false 開關 class {class1: true, class2:false} -->
                             </div>
                             <button @click="removeTodo(i)" class="badge bg-danger rounded-pill border-0">X</button>
                         </div>
-                        <input type="text" class="form-control" hidden>
+                        <input v-else v-model="todo.title" @blur="doneEdit(todo)" @keyup.enter="doneEdit(todo)" @keyup.escape="cancelEdit(todo)" type="text" class="form-control" >
                     </li>  
                 </ul>
                 <div class="mt-3 d-flex justify-content-between">
                     <strong class=" me-3">尚有 {{ remaining }}  個工作未完成</strong>
-                    <button class="btn btn-warning me-3">清除完成工作</button>
+                    <button class="btn btn-warning me-3" @click="removeCompleted">清除完成工作</button>
                 </div>
             </div>
             <div class="col-3"></div>
@@ -58,7 +58,9 @@
                     //     {"id": 2, "title": "作業2", "completed": true },
                     //     {"id": 3, "title": "作業3", "completed": false },
                     // ],
-                    newTodo:''
+                    newTodo:'',
+                    editedTodo:null,
+                    beforeEditCache:''
                 }
             },
             methods:{
@@ -71,7 +73,12 @@
                     if(!value){
                         return
                     }
-                    this.todos.push({"id":this.todos.length+1,"title":value,"completed":false})
+                    let id = 1
+                    if(this.todos.length > 0){
+                        this.todos[this.todos.length - 1].id + 1
+                    }
+                    this.todos.push({"id":id, "title":value,"completed":false})
+                    // this.todos[this.todos.length - 1].id + 1  =>避免 id 重複
                     this.newTodo=''
 
                     
@@ -83,6 +90,34 @@
                   //const i = this.todos.indexOf(item) //1 找不到回傳-1
                   //刪除splice(從甚麼位置,刪除幾筆資料)
                 this.todos.splice(index,1)
+                },
+                removeCompleted(){
+                //  let arrays =  this.todos.filter(function(value,index,array){
+                //       //value => {"id": 1, "title": "作業1", "completed": true }
+                //       //index => 0
+                //       //array => [{true},{false},{true}]
+                //       return true
+                //    })
+                //    arrays = [{true},{true}]
+
+                 //保留 todo.completed = false
+                //  this.todos = this.todos.filter(todo => !todo.completed) 寫這樣更精簡(call back function)，只要一行就不用大括號
+                    this.todos = this.todos.filter(function(todo){
+                        return !todo.completed
+                        // 保留 completed false 的
+                    })
+                },
+                editTodo(todo){
+                    this.beforeEditCache = todo.title
+                    this.editedTodo = todo
+                },
+                doneEdit(todo){
+                    todo.title = todo.title.trim()
+                    this.editedTodo = null
+                },
+                cancelEdit(todo){
+                    this.editedTodo = null
+                    todo.title = this.beforeEditCache
                 }
             },
             watch:{
